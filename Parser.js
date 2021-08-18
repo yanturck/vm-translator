@@ -69,7 +69,4 @@ class Parser {
     }
 }
 
-const test = new Parser('MyMain.vm');
-console.log(test.commands)
-
 exports.Parser = Parser;
