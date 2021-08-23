@@ -19,6 +19,7 @@ class Parser {
         // lê o primeiro comando
         if (this.hasMoreCommands()) {
             this.commandC = this.commands.shift();
+            return this.commandC;
         } else {
             throw 'Acabou os comandos!';
         }
@@ -39,7 +40,7 @@ class Parser {
             const arithmetic = ['add', 'sub', 'neg', 'eq', 'gt', 'lt', 'and', 'or', 'not'];
 
             if (arithmetic.includes(this.commandC)) {
-                return this.commandC;
+                return 'arithmetic';
             } else {
                 throw 'Comando não reconhecido';
             }
