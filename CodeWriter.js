@@ -1,14 +1,13 @@
 const fs = require('fs');
 
 class CodeWriter {
-
-    construtor (asmFile) {
+    constructor (asmFile) {
         // dado o nome do arquivo .asm, que será escrito com o código assembly, irá abrir o arquivo.
         this.fOutput = asmFile;
     }
 
     write (data) {
-        fs.writeFileSync(this.fOutput, data);
+        fs.appendFileSync(this.fOutput, data);
     }
 
     segmentPointer (segment, index) {
@@ -37,13 +36,13 @@ class CodeWriter {
             this.write('A=A-1\n');
 
             switch (command) {
-                case 'add': this.write('M = D+M\n');
+                case 'add': this.write('M=D+M\n');
                     break;
-                case 'sub': this.write('M = D-M\n');
+                case 'sub': this.write('M=D-M\n');
                     break;
-                case 'and': this.write('M = D&M\n');
+                case 'and': this.write('M=D&M\n');
                     break;
-                case 'or': this.write('M = D|M\n');
+                case 'or': this.write('M=D|M\n');
                     break;
             }
         } else if (aux2.includes(command)) {
@@ -85,7 +84,6 @@ class CodeWriter {
                     break;
             }
         }
-        return result;
     }
 
     writePush (seg, index) {
@@ -122,7 +120,6 @@ class CodeWriter {
                 this.write('M=M+1\n');
                 break;
         }
-        return result;
     }
 
     writePop (seg, index) {
@@ -152,11 +149,10 @@ class CodeWriter {
                 this.write('M=D\n');
                 break;
         }
-        return result;
     }
 
     // close () {
     //     // fecha o arquivo
     // }
 }
-exports.CodeWriter = CodeWriter;
+module.exports = CodeWriter;

@@ -2,7 +2,7 @@ const fs = require('fs');
 
 class Parser {
     constructor (vmFile) {
-        this.commands = fs.readFileSync(vmFile,'utf8').split('\n'); // lista de comandos
+        this.commands = fs.readFileSync(vmFile,'utf8').split('\r\n'); // lista de comandos
         this.commandC = ''; // comando corrente
     }
 
@@ -21,20 +21,19 @@ class Parser {
             this.commandC = this.commands.shift();
             return this.commandC;
         } else {
-            throw 'Acabou os comandos!';
+            console.log('Acabou os comandos!');
         }
     }
-
     commandType () {
         // Retorna o tipo de comando: Arithmetic, Push, Pop, Label, Goto, If, Function, Return, Call
-        if (this.commandC.length > 3) {
+        if (this.commandC.length > 4) {
             const tipos = ['push', 'pop', 'label', 'goto', 'if', 'function', 'return', 'call'];
-            var aux = this.commandCcommand.split(' ');
+            var aux = this.commandC.split(' ');
 
             if (tipos.includes(aux[0])) {
                 return aux[0];
             } else {
-                throw 'Comando não reconhecido';
+                console.log('Comando não reconhecido');
             }
         } else {
             const arithmetic = ['add', 'sub', 'neg', 'eq', 'gt', 'lt', 'and', 'or', 'not'];
@@ -42,7 +41,7 @@ class Parser {
             if (arithmetic.includes(this.commandC)) {
                 return 'arithmetic';
             } else {
-                throw 'Comando não reconhecido';
+                console.log('Comando não reconhecido');
             }
         }
     }
@@ -69,5 +68,4 @@ class Parser {
         }
     }
 }
-
-exports.Parser = Parser;
+module.exports = Parser;

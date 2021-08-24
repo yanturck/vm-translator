@@ -2,9 +2,9 @@
   "name": "vm-translator",
   "version": "1.0.0",
   "description": "Tradutor vm para liguagem hack assemble",
-  "main": "Parser.js",
+  "main": "Main.js",
   "scripts": {
-    "start": "node Parser.js",
+    "start": "node Main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Yan Rocha Pimenta",
