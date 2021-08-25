@@ -1,12 +1,14 @@
-@10 // push constant 10D=A
+@10 // push constant 10
+D=A
 @SP
 A=M
 M=D
 @SP
 M=M+1
-LCL
+@LCL // pop local 0
 D=M
-@0D=D+A
+@0
+D=D+A
 @R13
 M=D
 @SP
@@ -16,45 +18,52 @@ D=M
 @R13
 A=M
 M=D
-@21 // push constant 21D=A
+@21 // push constant 21
+D=A
 @SP
 A=M
 M=D
 @SP
 M=M+1
-@22 // push constant 22D=A
+@22 // push constant 22
+D=A
 @SP
 A=M
 M=D
 @SP
 M=M+1
-@36 // push constant 36D=A
+@36 // push constant 36
+D=A
 @SP
 A=M
 M=D
 @SP
 M=M+1
-@42 // push constant 42D=A
+@42 // push constant 42
+D=A
 @SP
 A=M
 M=D
 @SP
 M=M+1
-@45 // push constant 45D=A
+@45 // push constant 45
+D=A
 @SP
 A=M
 M=D
 @SP
 M=M+1
-@510 // push constant 510D=A
+@510 // push constant 510
+D=A
 @SP
 A=M
 M=D
 @SP
 M=M+1
-LCL
+@LCL // push local 0
 M=D
-@0A=D+A
+@0
+A=D+A
 D=M
 @SP
 A=M

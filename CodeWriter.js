@@ -4,6 +4,9 @@ class CodeWriter {
     constructor (asmFile) {
         // dado o nome do arquivo .asm, que será escrito com o código assembly, irá abrir o arquivo.
         this.fOutput = asmFile;
+        fs.writeFileSync(this.fOutput, ''); // apagando conteúdo do arquivo
+
+        this.subCount = 0;
     }
 
     write (data) {
@@ -12,77 +15,103 @@ class CodeWriter {
 
     segmentPointer (segment, index) {
         switch (segment) {
-            case 'local': return 'LCL\n';
-            case 'argument': return 'ARG\n';
-            case 'this', 'that': return segment.toUpperCase() + '\n';
-            case 'temp': return `R${5+index}\n`;
-            case 'pointer': return `R${3+index}\n`;
-            case 'static': return `${segment}.${index}\n`;
+            case 'local': return 'LCL';
+            case 'argument': return 'ARG';
+            case 'this', 'that': return segment.toUpperCase();
+            case 'temp': return `R${5+index}`;
+            case 'pointer': return `R${3+index}`;
+            case 'static': return `${segment}.${index}`;
             default: console.log('Deu pau!!');
         }
 
     }
 
+    writeBinaryArithmetic () {
+        this.write('@SP\n');
+        this.write('AM=M-1\n');
+        this.write('D=M\n');
+        this.write('A=A-1\n');
+    }
+    writeArithmeticAdd () {
+        this.writeBinaryArithmetic();
+        this.write('M=D+M\n');
+    }
+    writeArithmeticSub () {
+        this.writeBinaryArithmetic();
+        this.write('M=D-M\n');
+    }
+    writeArithmeticAnd () {
+        this.writeBinaryArithmetic();
+        this.write('M=D&M\n');
+    }
+    writeArithmeticOr () {
+        this.writeBinaryArithmetic();
+        this.write('M=D|M\n');
+    }
+
+    writeUnaryArithmetic () {
+        this.write('@SP\n');
+        this.write('A=M\n');
+        this.write('A=A-1\n');
+    }
+    writeArithmeticNeg () {
+        this.writeUnaryArithmetic();
+        this.write('M=-M\n');
+    }
+    writeArithmeticNot () {
+        this.writeUnaryArithmetic();
+        this.write('M=!M\n');
+    }
+
+    writeArithmeticEq () {
+        this.write(`@$RET${this.subCount}`);
+        this.write('D=A');
+        this.write('@$EQ$');
+        this.writer('0;JMP');
+        this.writer(`(${this.subCount})`);
+        this.subCount++;
+    }
+    writeArithmeticGt () {
+        this.write(`@$RET${this.subCount}`);
+        this.write('D=A');
+        this.write('@$GT$');
+        this.writer('0;JMP');
+        this.writer(`(${this.subCount})`);
+        this.subCount++;
+    }
+    writeArithmeticLt () {
+        this.write(`@$RET${this.subCount}`);
+        this.write('D=A');
+        this.write('@$LT$');
+        this.writer('0;JMP');
+        this.writer(`(${this.subCount})`);
+        this.subCount++;
+    }
+
     writeArithmetic (command) {
         // irá escrever o código assembly equivalente a um dado um comando lógico ou aritmético.
-        this.write('@SP\n');
-        var aux1 = ['add', 'sub', 'and', 'or'];
-        var aux2 = ['eq', 'gt', 'lt'];
-        var aux3 = ['neg', 'not'];
-
-        if (aux1.includes(command)){
-            this.write('AM=M-1\n');
-            this.write('D=M\n');
-            this.write('A=A-1\n');
-
-            switch (command) {
-                case 'add': this.write('M=D+M\n');
-                    break;
-                case 'sub': this.write('M=D-M\n');
-                    break;
-                case 'and': this.write('M=D&M\n');
-                    break;
-                case 'or': this.write('M=D|M\n');
-                    break;
-            }
-        } else if (aux2.includes(command)) {
-            this.write('AM=M-1\n');
-            this.write('D=M\n');
-            this.write('@SP\n');
-            this.write('AM=M-1\n');
-            this.write('D=M-D\n'); // subtrai os valores da pilha e guarda em D
-            this.write('@VERDADEIRO\n');
-
-            switch (command) {
-                case 'eq': this.write('D;JLT\n');
-                    break;
-                case 'gt': this.write('D;JGT\n');
-                     break;
-                case 'eq': this.write('D;JEQ\n');
-                    break;
-            }
-
-            this.write('D=0\n');
-            this.write('@EMPILHANDO\n');
-            this.write('0;JMP\n');
-            this.write('(VERDADEIRO)\n');
-            this.write('D=-1\n');
-            this.write('(EMPILHANDO)\n');
-            this.write('@SP\n');
-            this.write('A=M\n');
-            this.write('M=D\n');
-            this.write('@SP\n');
-            this.write('M=M+1\n');
-        } else if (aux3.includes(command)) {
-            this.write('A=M\n');
-            this.write('A=A-1\n');
-
-            switch (command) {
-                case 'neg': this.write('!M\n');
-                    break;
-                case 'not': this.write('-M\n');
-                    break;
-            }
+        switch (command) {
+            case 'add': this.writeArithmeticAdd();
+                break;
+            case 'sub': this.writeArithmeticSub();
+                break;
+            case 'and': this.writeArithmeticAnd();
+                break;
+            case 'or': this.writeArithmeticOr();
+                break;
+            case 'neg': this.writeArithmeticNeg();
+                break;
+            case 'not': this.writeArithmeticNot();
+                break;
+            case 'eq': this.writeArithmeticEq();
+                break;
+            case 'lt': this.writeArithmeticLt();
+                break;
+            case 'gt': this.writeArithmeticGt();
+                break;
+            default:
+                console.log('Comando não encontrado!');
+                break;
         }
     }
 
@@ -90,7 +119,7 @@ class CodeWriter {
         // dado o segmento e o indice irá escrever o codigo assembly equivalente
         switch (seg) {
             case 'constant':
-                this.write(`@${index} // push ${seg} ${index}`);
+                this.write(`@${index} // push ${seg} ${index}\n`);
                 this.write('D=A\n');
                 this.write('@SP\n');
                 this.write('A=M\n');
@@ -99,9 +128,9 @@ class CodeWriter {
                 this.write('M=M+1\n');
                 break;
             case 'local' || 'argument' || 'this' || 'that':
-                this.write(this.segmentPointer(seg, index));
+                this.write(`@${this.segmentPointer(seg, index)} // push ${seg} ${index}\n`);
                 this.write('M=D\n');
-                this.write(`@${index}`);
+                this.write(`@${index}\n`);
                 this.write('A=D+A\n');
                 this.write('D=M\n');
                 this.write('@SP\n');
@@ -111,7 +140,7 @@ class CodeWriter {
                 this.write('M=M+1\n');
                 break;
             case 'static' || 'temp' || 'pointer':
-                this.write(this.segmentPointer(seg, index));
+                this.write(`@${this.segmentPointer(seg, index)} // push ${seg} ${index}`);
                 this.write('D=M\n');
                 this.write('@SP\n');
                 this.write('A=M\n');
@@ -126,7 +155,7 @@ class CodeWriter {
         // dado o segmento e o indice irá escrever o codigo assembly equivalente
         switch (seg) {
             case 'static' || 'temp' || 'pointer':
-                this.write(`@SP // push ${seg} ${index}\n`);
+                this.write(`@SP // pop ${seg} ${index}\n`);
                 this.write('M=M-1\n');
                 this.write('A=M\n');
                 this.write('D=M\n');
@@ -134,9 +163,9 @@ class CodeWriter {
                 this.write('M=D\n');
                 break;
             case 'local' || 'argument' || 'this' || 'that':
-                this.write(this.segmentPointer(seg, index));
+                this.write(`@${this.segmentPointer(seg, index)} // pop ${seg} ${index}\n`);
                 this.write('D=M\n');
-                this.write(`@${index}`);
+                this.write(`@${index}\n`);
                 this.write('D=D+A\n');
                 this.write('@R13\n');
                 this.write('M=D\n');
