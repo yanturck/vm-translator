@@ -1,8 +1,8 @@
 const Parser = require('./Parser');
 const CW = require('./CodeWriter');
 
-const cmInput = 'BasicTest.vm';
-const cmOutput = 'BasicTest.asm';
+const cmInput = 'StackTest.vm';
+const cmOutput = 'StackTest.asm';
 
 var p = new Parser(cmInput);
 var code = new CW(cmOutput);

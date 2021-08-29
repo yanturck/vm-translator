@@ -6,85 +6,88 @@ class CodeWriter {
         this.fOutput = asmFile;
         fs.writeFileSync(this.fOutput, ''); // apagando conteúdo do arquivo
 
-        this.subCount = 0;
+        this.subCount = 1;
     }
 
     write (data) {
-        fs.appendFileSync(this.fOutput, data);
+        fs.appendFileSync(this.fOutput, `${data}\n`);
     }
 
     segmentPointer (segment, index) {
         switch (segment) {
             case 'local': return 'LCL';
             case 'argument': return 'ARG';
-            case 'this', 'that': return segment.toUpperCase();
-            case 'temp': return `R${5+index}`;
-            case 'pointer': return `R${3+index}`;
-            case 'static': return `${segment}.${index}`;
-            default: console.log('Deu pau!!');
+            case 'this': return segment.toUpperCase();
+            case 'that': return segment.toUpperCase();
+            case 'temp': return `@R${5+parseInt(index)}`;
+            case 'pointer': return `@R${3+parseInt(index)}`;
+            case 'static':
+                var aux = this.fOutput.split('.');
+                return `@${aux[0]}.${index}`;
+            default: console.log(`${segment}: Segmento não reconhecido!`);
         }
 
     }
 
     writeBinaryArithmetic () {
-        this.write('@SP\n');
-        this.write('AM=M-1\n');
-        this.write('D=M\n');
-        this.write('A=A-1\n');
+        this.write('@SP');
+        this.write('AM=M-1');
+        this.write('D=M');
+        this.write('A=A-1');
     }
     writeArithmeticAdd () {
         this.writeBinaryArithmetic();
-        this.write('M=D+M\n');
+        this.write('M=D+M');
     }
     writeArithmeticSub () {
         this.writeBinaryArithmetic();
-        this.write('M=D-M\n');
+        this.write('M=M-D');
     }
     writeArithmeticAnd () {
         this.writeBinaryArithmetic();
-        this.write('M=D&M\n');
+        this.write('M=D&M');
     }
     writeArithmeticOr () {
         this.writeBinaryArithmetic();
-        this.write('M=D|M\n');
+        this.write('M=D|M');
     }
 
     writeUnaryArithmetic () {
-        this.write('@SP\n');
-        this.write('A=M\n');
-        this.write('A=A-1\n');
+        this.write('@SP');
+        this.write('A=M');
+        this.write('A=A-1');
     }
     writeArithmeticNeg () {
         this.writeUnaryArithmetic();
-        this.write('M=-M\n');
+        this.write('M=-M');
     }
     writeArithmeticNot () {
         this.writeUnaryArithmetic();
-        this.write('M=!M\n');
+        this.write('M=!M');
     }
 
     writeArithmeticEq () {
         this.write(`@$RET${this.subCount}`);
         this.write('D=A');
         this.write('@$EQ$');
-        this.writer('0;JMP');
-        this.writer(`(${this.subCount})`);
+        this.write('0;JMP');
+        this.write(`($RET${this.subCount})`);
         this.subCount++;
     }
     writeArithmeticGt () {
         this.write(`@$RET${this.subCount}`);
         this.write('D=A');
         this.write('@$GT$');
-        this.writer('0;JMP');
-        this.writer(`(${this.subCount})`);
+        this.write('0;JMP');
+        this.write(`($RET${this.subCount})`);
         this.subCount++;
     }
     writeArithmeticLt () {
         this.write(`@$RET${this.subCount}`);
         this.write('D=A');
         this.write('@$LT$');
-        this.writer('0;JMP');
-        this.writer(`(${this.subCount})`);
+        this.write('0;JMP');
+        this.write(`($RET${this.subCount})`);
         this.subCount++;
     }
 
@@ -117,66 +120,65 @@ class CodeWriter {
 
     writePush (seg, index) {
         // dado o segmento e o indice irá escrever o codigo assembly equivalente
-        switch (seg) {
-            case 'constant':
-                this.write(`@${index} // push ${seg} ${index}\n`);
-                this.write('D=A\n');
-                this.write('@SP\n');
-                this.write('A=M\n');
-                this.write('M=D\n');
-                this.write('@SP\n');
-                this.write('M=M+1\n');
-                break;
-            case 'local' || 'argument' || 'this' || 'that':
-                this.write(`@${this.segmentPointer(seg, index)} // push ${seg} ${index}\n`);
-                this.write('M=D\n');
-                this.write(`@${index}\n`);
-                this.write('A=D+A\n');
-                this.write('D=M\n');
-                this.write('@SP\n');
-                this.write('A=M\n');
-                this.write('M=D\n');
-                this.write('@SP\n');
-                this.write('M=M+1\n');
-                break;
-            case 'static' || 'temp' || 'pointer':
+        var aux1 = ['static', 'temp', 'pointer'];
+        var aux2 = ['local', 'argument', 'this', 'that'];
+
+        if (seg == 'constant') {
+                this.write(`@${index} // push ${seg} ${index}`);
+                this.write('D=A');
+                this.write('@SP');
+                this.write('A=M');
+                this.write('M=D');
+                this.write('@SP');
+                this.write('M=M+1');
+        } else if (aux2.includes(seg)) {
                 this.write(`@${this.segmentPointer(seg, index)} // push ${seg} ${index}`);
-                this.write('D=M\n');
-                this.write('@SP\n');
-                this.write('A=M\n');
-                this.write('M=D\n');
-                this.write('@SP\n');
-                this.write('M=M+1\n');
-                break;
+                this.write('D=M');
+                this.write(`@${index}`);
+                this.write('A=D+A');
+                this.write('D=M');
+                this.write('@SP');
+                this.write('A=M');
+                this.write('M=D');
+                this.write('@SP');
+                this.write('M=M+1');
+        } else if (aux1.includes(seg)) {
+                this.write(`${this.segmentPointer(seg, index)} // push ${seg} ${index}`);
+                this.write('D=M');
+                this.write('@SP');
+                this.write('A=M');
+                this.write('M=D');
+                this.write('@SP');
+                this.write('M=M+1');
         }
     }
 
     writePop (seg, index) {
         // dado o segmento e o indice irá escrever o codigo assembly equivalente
-        switch (seg) {
-            case 'static' || 'temp' || 'pointer':
-                this.write(`@SP // pop ${seg} ${index}\n`);
-                this.write('M=M-1\n');
-                this.write('A=M\n');
-                this.write('D=M\n');
-                this.write(this.segmentPointer(seg, index));
-                this.write('M=D\n');
-                break;
-            case 'local' || 'argument' || 'this' || 'that':
-                this.write(`@${this.segmentPointer(seg, index)} // pop ${seg} ${index}\n`);
-                this.write('D=M\n');
-                this.write(`@${index}\n`);
-                this.write('D=D+A\n');
-                this.write('@R13\n');
-                this.write('M=D\n');
-                this.write('@SP\n');
-                this.write('M=M-1\n');
-                this.write('A=M\n');
-                this.write('D=M\n');
-                this.write('@R13\n');
-                this.write('A=M\n');
-                this.write('M=D\n');
-                break;
+        var aux1 = ['static', 'temp', 'pointer'];
+        var aux2 = ['local', 'argument', 'this', 'that'];
+
+        if (aux1.includes(seg)) {
+            this.write(`@SP // pop ${seg} ${index}`);
+            this.write('M=M-1');
+            this.write('A=M');
+            this.write('D=M');
+            this.write(this.segmentPointer(seg, index));
+            this.write('M=D');
+        } else if (aux2.includes(seg)) {
+            this.write(`@${this.segmentPointer(seg, index)} // pop ${seg} ${index}`);
+            this.write('D=M');
+            this.write(`@${index}`);
+            this.write('D=D+A');
+            this.write('@R13');
+            this.write('M=D');
+            this.write('@SP');
+            this.write('M=M-1');
+            this.write('A=M');
+            this.write('D=M');
+            this.write('@R13');
+            this.write('A=M');
+            this.write('M=D');
         }
     }
 
