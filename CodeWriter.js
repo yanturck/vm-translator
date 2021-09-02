@@ -22,8 +22,9 @@ class CodeWriter {
             case 'temp': return `@R${5+parseInt(index)}`;
             case 'pointer': return `@R${3+parseInt(index)}`;
             case 'static':
-                var aux = this.fOutput.split('.');
-                return `@${aux[0]}.${index}`;
+                var aux1 = this.fOutput.split('/');
+                var aux2 = aux1.pop().split('.');
+                return `@${aux2[0]}.${index}`;
             default: console.log(`${segment}: Segmento não reconhecido!`);
         }
 
