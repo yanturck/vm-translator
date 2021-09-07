@@ -6,7 +6,11 @@ class CodeWriter {
         this.fOutput = asmFile;
         fs.writeFileSync(this.fOutput, ''); // apagando conteúdo do arquivo
 
+        this.setFileName = ''; // nome do arquivo em tradução
+        this.funcName = '';
+
         this.subCount = 1;
+        this.callCount = 0;
     }
 
     write (data) {
@@ -181,6 +185,95 @@ class CodeWriter {
             this.write('A=M');
             this.write('M=D');
         }
+    }
+
+    writeLabel (label) {
+        this.write(`(${this.funcName}${label})`);
+    }
+
+    writeGoto (label) {
+        this.write(`@${this.funcName}${label}`);
+        this.write('0;JMP');
+    }
+
+    writeIf (label) {
+        this.write('@SP');
+        this.write('AM=M-1');
+        this.write('D=M');
+        this.write('M=0');
+        this.write(`@${this.funcName}${label}`);
+        this.write('D;JNE');
+    }
+
+    writeCall (funcName, nArgs) {
+        this.write(`@${funcName}_RETURN_${this.callCount}  // call ${funcName} ${nArgs}`);
+        this.write('D=A');
+        this.write('@SP');
+        this.write('A=M');
+        this.write('M=D');
+        this.write('@SP');
+        this.write('M=M+1');
+
+        this.write(`@$RET${this.subCount}`);
+        this.write('D=A');
+        this.write('@$FRAME$');
+        this.write('0;JMP');
+        this.write(`($RET${this.subCount})`);
+        this.subCount++;
+
+        this.write(`@${nArgs}`);
+        this.write('D=A');
+        this.write('@5');
+        this.write('D=D+A');
+        this.write('@SP');
+        this.write('D=M-D');
+        this.write('@ARG');
+        this.write('M=D');
+        this.write('@SP');
+        this.write('D=M');
+        this.write('@LCL');
+        this.write('M=D');
+        this.write(`@${funcName}`);
+        this.write('0;JMP');
+        this.write(`(${funcName}_RETURN_${this.callCount})`);
+        this.callCount++;
+    }
+
+    writeFunction (funcName, n) {
+        var loop = `${funcName}_INIT_LOCALS_LOOP`;
+        var end = `${funcName}_INIT_LOCALS_END`;
+
+        this.funcName = funcName;
+
+        this.write(`(${funcName}) // inicializando variaveis locais`);
+        this.write(`@${n}`);
+        this.write('D=A');
+        this.write('@R13'); // temp
+        this.write('M=D');
+        this.write(`(${loop})`);
+        this.write(`@${end}`);
+        this.write('D;JEQ');
+        this.write('@0');
+        this.write('D=A');
+        this.write('@SP');
+        this.write('A=M');
+        this.write('M=D');
+        this.write('@SP');
+        this.write('M=M+1');
+        this.write('@R13');
+        this.write('MD=M-1');
+        this.write(`@${loop}`);
+        this.write('0;JMP');
+        this.write(`(${end})`);
+    }
+
+    writeReturn () {
+        this.write(`@$RET${this.subCount}`);
+        this.write('D=A');
+        this.write('@$RETURN$');
+        this.write('0;JMP');
+        this.write(`($RET${this.subCount})`);
+        this.subCount++;
     }
 
     // close () {
