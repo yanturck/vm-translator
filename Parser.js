@@ -18,7 +18,14 @@ class Parser {
     advance () {
         // lê o primeiro comando
         if (this.hasMoreCommands()) {
-            this.commandC = this.commands.shift();
+            var aux = this.commands.shift();
+            var tmp = aux.indexOf('//');
+
+            if (tmp != -1) {
+                this.commandC = aux.slice(0,tmp);
+            } else {
+                this.commandC = aux;
+            }
             return this.commandC;
         } else {
             console.log('Acabou os comandos!');
@@ -27,21 +34,22 @@ class Parser {
     commandType () {
         // Retorna o tipo de comando: Arithmetic, Push, Pop, Label, Goto, If, Function, Return, Call
         if (this.commandC.length > 4) {
-            const tipos = ['push', 'pop', 'label', 'goto', 'if', 'function', 'return', 'call'];
+            const tipos = ['push', 'pop', 'label', 'goto', 'if-goto', 'function', 'return', 'call'];
             var aux = this.commandC.split(' ');
 
             if (tipos.includes(aux[0])) {
                 return aux[0];
             } else {
-                console.log('Comando não reconhecido');
+                // console.log('Comando não reconhecido');
             }
         } else {
             const arithmetic = ['add', 'sub', 'neg', 'eq', 'gt', 'lt', 'and', 'or', 'not'];
+            // console.log(this.commandC);
 
             if (arithmetic.includes(this.commandC)) {
                 return 'arithmetic';
             } else {
-                console.log('Comando não reconhecido');
+                // console.log('Comando não reconhecido');
             }
         }
     }

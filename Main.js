@@ -4,17 +4,20 @@ const Parser = require('./Parser');
 const CW = require('./CodeWriter');
 
 const dir = argv['_'].pop();
-console.log('Compilando!!!');
+console.log('Compilando...');
+
+var path = dir.split('/');
+const cmOutput = dir + '/' + path.pop() + '.asm';
+var code = new CW(cmOutput);
 
 fs.readdirSync(dir).forEach(file => {
     if (file.indexOf('.vm') != -1) {
         
         const cmInput = dir + '/' + file;
         file = file.split('.');
-        const cmOutput = dir + '/' + file[0] + '.asm';
+        code.setFileName(file[0]);
 
         var p = new Parser(cmInput);
-        var code = new CW(cmOutput);
 
         while (p.hasMoreCommands()) {
             var cmd = p.advance();
@@ -25,7 +28,19 @@ fs.readdirSync(dir).forEach(file => {
                     break;
                 case 'pop': code.writePop(p.agr1(), p.agr2());
                     break;
-                default: console.log('Tipo indisponivel');
+                case 'label': code.writeLabel(p.agr1());
+                    break;
+                case 'goto': code.writeGoto(p.agr1());
+                    break;
+                case 'if-goto': code.writeIf(p.agr1());
+                    break;
+                case 'function': code.writeFunction(p.agr1(), p.agr2());
+                    break;
+                case 'return': code.writeReturn();
+                    break;
+                case 'call': code.writeCall(p.agr1(), p.agr2());
+                    break;
+                default: //console.log(p.commandType() + ': Tipo indisponivel');
                     break;
             }
         }
